@@ -1,3 +1,7 @@
+#INTEGRANTES 
+- EDDY NOE DIAZ MUÑOZ
+- NIKOLAY GORELKIN WILLS
+- NORMA ALICE ISU ATEAGA
 # RUTABOL-SCZ
 
 Aplicación web académica para gestionar líneas y micros, conductores, viajes, pasajes, pagos simulados, aforo y transbordos de emergencia en Santa Cruz. La aplicación tiene un frontend Next.js y una API NestJS conectada a PostgreSQL.
