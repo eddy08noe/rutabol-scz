@@ -85,3 +85,13 @@ Abre <http://localhost:3000>. La variable `NEXT_PUBLIC_API_URL` debe apuntar a `
 ## Verificaciones
 
 Desde `backend`, `npm run build`. Desde `frontend`, `npm run build`.
+
+## Seguridad de sesiones y API
+
+- Las consultas a PostgreSQL usan parámetros (`$1`, `$2`, etc.). Los nombres de tabla que no se pueden parametrizar se seleccionan desde una lista fija; no agregues valores recibidos del usuario mediante interpolación SQL.
+- Las rutas protegidas validan la sesión contra una cuenta activa y cargan el rol vigente desde PostgreSQL en cada solicitud. Los DTO rechazan campos extra (`whitelist` y `forbidNonWhitelisted`).
+- El inicio de sesión regenera el ID de sesión; la sesión queda guardada en PostgreSQL y sobrevive reinicios del proceso. La cookie `micros.sid` es `HttpOnly`, `SameSite=Lax`, dura una hora y usa `Secure` cuando `NODE_ENV=production`.
+- Las solicitudes que cambian datos (`POST`, `PATCH`, `DELETE`) deben incluir el `Origin` del frontend configurado en `FRONTEND_ORIGIN`. Mantén ese valor como origen exacto, sin rutas. Swagger permite también el origen local de la API para facilitar pruebas.
+- En producción sirve la API detrás de HTTPS y configura correctamente el proxy inverso. El backend confía en un salto de proxy cuando `NODE_ENV=production`; ajusta esa opción si tu infraestructura tiene otra topología.
+- Este repositorio no implementa WebSockets ni expone un endpoint/socket gateway. La autenticación actual es HTTP con cookie de sesión. Si se incorporan WebSockets, valida la sesión en el handshake, comprueba el rol en cada evento sensible, limita el origen permitido y no aceptes IDs de usuario/rol enviados por el cliente.
+- Para probar manualmente: inicia sesión desde la aplicación, recarga la página y confirma que `/api/auth/me` conserva la cuenta; cierra sesión y confirma que `/api/auth/me` responde `401`. Prueba también una ruta administrativa con una sesión de pasajero (debe responder `403`) y una mutación con un `Origin` ajeno a `FRONTEND_ORIGIN` (debe responder `403`). Las verificaciones de compilación indicadas arriba no sustituyen estas pruebas con una base local.

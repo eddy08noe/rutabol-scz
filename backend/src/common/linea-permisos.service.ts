@@ -16,9 +16,12 @@ export class LineaPermisosService {
 
   async verificarRecurso(usuarioId: number, rol: Rol, tabla: 'micros' | 'conductores' | 'viajes', id: number) {
     if (rol === 'ADMIN') return;
-    const sql = tabla === 'conductores'
-      ? 'SELECT 1 FROM conductor_lineas cl JOIN lineas l ON l.id = cl.linea_id AND l.activa JOIN organizador_lineas ol ON ol.linea_id = cl.linea_id WHERE cl.conductor_id = $2 AND ol.usuario_id = $1'
-      : `SELECT 1 FROM ${tabla} r JOIN lineas l ON l.id = r.linea_id AND l.activa JOIN organizador_lineas ol ON ol.linea_id = r.linea_id WHERE r.id = $2 AND ol.usuario_id = $1`;
+    const consultas: Record<typeof tabla, string> = {
+      micros: 'SELECT 1 FROM micros r JOIN lineas l ON l.id = r.linea_id AND l.activa JOIN organizador_lineas ol ON ol.linea_id = r.linea_id WHERE r.id = $2 AND ol.usuario_id = $1',
+      viajes: 'SELECT 1 FROM viajes r JOIN lineas l ON l.id = r.linea_id AND l.activa JOIN organizador_lineas ol ON ol.linea_id = r.linea_id WHERE r.id = $2 AND ol.usuario_id = $1',
+      conductores: 'SELECT 1 FROM conductor_lineas cl JOIN lineas l ON l.id = cl.linea_id AND l.activa JOIN organizador_lineas ol ON ol.linea_id = cl.linea_id WHERE cl.conductor_id = $2 AND ol.usuario_id = $1',
+    };
+    const sql = consultas[tabla];
     const rows = await this.db.query(sql, [usuarioId, id]);
     if (!rows.length) throw new ForbiddenException('El recurso no pertenece a una línea asignada');
   }
