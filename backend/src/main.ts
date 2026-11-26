@@ -45,7 +45,10 @@ async function bootstrap() {
     store: new PgStore({ pool: database.getPool(), createTableIfMissing: true }),
     cookie: {
       httpOnly: true,
-      sameSite: 'lax',
+      // En despliegues donde frontend y API usan dominios distintos, el
+      // navegador solo envía la cookie de sesión si SameSite es None y Secure.
+      // El control de Origin anterior limita las mutaciones a nuestro frontend.
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 1000,
     },
